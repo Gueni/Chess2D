@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+numpy = "*"
+pyopengl = "*"
+pyopengl-accelerate = "*"
+glfw = "*"
+pillow = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"
+
+[packages.imgui]
+extras = [ "glfw",]

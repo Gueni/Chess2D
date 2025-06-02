@@ -1,1 +1,2 @@
-# Chess3D
+# 3D Chess
+A 3D chess game in OpenGL.
