@@ -5,7 +5,7 @@ from time import sleep
 import glfw
 
 from OpenGL.GL import *
-from ObjModel import ObjModel
+from engine import ObjModel
 import magic
 
 import sys
