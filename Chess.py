@@ -8,8 +8,8 @@ import magic
 from time import sleep
 
 
-from Chess.View import initGlFwAndResources, View, WIDTH, HEIGHT, WINDOW_TITLE
-from Chess.Model import Game
+from View import initGlFwAndResources, View, WIDTH, HEIGHT, WINDOW_TITLE
+from Model import Game
 
 def main():
     rotating = 0
