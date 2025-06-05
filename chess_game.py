@@ -23,10 +23,16 @@ def resource_path(relative_path):
 
 # Initialize pygame
 pygame.init()
+# Get the directory where your script is located
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Construct the path to your image file
+image_path = os.path.join(script_dir, 'chess.png')
 
 # Load the window icon
 try:
-    icon = pygame.image.load('D:/WORKSPACE/Chess2D/chess.png')
+    # Load the image
+    icon = pygame.image.load(image_path)
     pygame.display.set_icon(icon)
 except:
     try:
@@ -59,16 +65,52 @@ COORD_COLOR = (120, 120, 120)
 font = pygame.font.SysFont('Arial', 18)
 large_font = pygame.font.SysFont('Arial', 24)
 coord_font = pygame.font.SysFont('Arial', 16, bold=True)
+import os
+import sys
+import platform
 
+class ChessEngine:
+    def __init__(self):
+        self.engine_dir = os.path.join(os.path.dirname(__file__), "stockfish")
+        self.engine_path = self._get_engine_path()
+
+    def _get_engine_path(self):
+        """Return the correct Stockfish executable path based on the OS."""
+        system = platform.system()
+        
+        if system == "Windows":
+            exe_name = "stockfish-windows-x86-64-avx2.exe"
+        elif system == "Linux":
+            exe_name = "stockfish-ubuntu-x86-64-avx2"  # Example for Linux
+        elif system == "Darwin":  # macOS
+            exe_name = "stockfish-macos-x86-64-avx2"   # Example for macOS
+        else:
+            raise OSError(f"Unsupported OS: {system}")
+
+        path = os.path.join(self.engine_dir, exe_name)
+        
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Stockfish engine not found at: {path}")
+        
+        return path
 # Sound effects
 try:
     pygame.mixer.init()
-    capture_sound = pygame.mixer.Sound('D:/WORKSPACE/Chess2D/sound/capture.mp3')
-    castle_sound = pygame.mixer.Sound('D:/WORKSPACE/Chess2D/sound/castle.mp3')
-    check_sound = pygame.mixer.Sound('D:/WORKSPACE/Chess2D/sound/check.mp3')
-    move_sound = pygame.mixer.Sound('D:/WORKSPACE/Chess2D/sound/move.mp3')
-    notify_sound = pygame.mixer.Sound('D:/WORKSPACE/Chess2D/sound/notify.mp3')
-    promote_sound = pygame.mixer.Sound('D:/WORKSPACE/Chess2D/sound/promote.mp3')
+    # Get the directory where the script is located
+    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    SOUND_DIR = os.path.join(SCRIPT_DIR, "sound")
+
+    def load_sound(filename):
+        """Load a sound file from the sound directory."""
+        return pygame.mixer.Sound(os.path.join(SOUND_DIR, filename))
+
+    # Load all sounds
+    capture_sound = load_sound("capture.mp3")
+    castle_sound = load_sound("castle.mp3")
+    check_sound = load_sound("check.mp3")
+    move_sound = load_sound("move.mp3")
+    notify_sound = load_sound("notify.mp3")
+    promote_sound = load_sound("promote.mp3")
     SOUND_ENABLED = True
 except Exception as e:
     print(f"Could not load sound effects: {e}")
@@ -92,7 +134,7 @@ class ChessGame:
         self.load_images()
         
         # Stockfish setup
-        self.engine_path = r'D:\WORKSPACE\Chess2D\stockfish\stockfish-windows-x86-64-avx2.exe'
+        self.engine_path = ChessEngine()
         self.engine = None
         self.player_color = player_color  # 'white' or 'black'
         self.ai_thinking = False
@@ -101,7 +143,7 @@ class ChessGame:
     def init_stockfish(self):
         try:
             # Use raw string and verify path
-            self.engine_path = r'D:\WORKSPACE\Chess2D\stockfish\stockfish-windows-x86-64-avx2.exe'
+            self.engine_path = ChessEngine()
             
             # Verify the file exists
             if not os.path.exists(self.engine_path):
