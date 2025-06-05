@@ -47,3 +47,9 @@ cd Chess2D
 
  - ESC: Cancel current selection
 
+## ToDo
+ - Added scroll functionality for move history console
+ - Implemented look menu in console UI
+ - Fixed various button interaction bugs
+ - Improved pawn promotion menu stability
+ - Enhanced move validation edge cases
