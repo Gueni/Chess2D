@@ -24,7 +24,6 @@ BOARD_SIZE = 700
 SQUARE_SIZE = BOARD_SIZE // 8
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Chess 2D")
-
 # Colors
 LIGHT_BROWN = (240, 217, 181)
 DARK_BROWN = (181, 136, 99)
@@ -35,7 +34,6 @@ SELECTED = (255, 255, 100, 150)
 CHECK = (255, 0, 0, 150)
 PROMOTION_BG = (70, 70, 70)
 COORD_COLOR = (120, 120, 120)
-
 # Font
 font = pygame.font.SysFont('Arial', 18)
 large_font = pygame.font.SysFont('Arial', 24)
@@ -473,6 +471,7 @@ class ChessGame:
 
         # Only check for checkmate/stalemate after the opponent has moved
         return True
+    
     def get_move_notation(self, start, end, piece, target):
         letters = 'abcdefgh'
         start_col, start_row = letters[start[1]], 8 - start[0]
@@ -529,6 +528,7 @@ class ChessGame:
         self.current_turn = opponent_color
         
         return True
+
 def draw_board(game):
     # Draw the chess board with coordinates
     for row in range(8):
