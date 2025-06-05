@@ -76,6 +76,7 @@ except Exception as e:
 
 class ChessGame:
     def __init__(self, player_color='white'):
+        self.log_scroll = 0  # Add this line
         self.board = self.initialize_board()
         self.selected_piece = None
         self.current_turn = 'white'
@@ -740,32 +741,65 @@ def draw_move_log(game):
     log_width = WIDTH - BOARD_SIZE - 20
     log_height = HEIGHT - 20
     
-    pygame.draw.rect(screen, (50, 50, 50), (log_x - 5, log_y - 5, log_width + 10, log_height + 10))
-    pygame.draw.rect(screen, (100, 100, 100), (log_x, log_y, log_width, log_height))
+    # Create a surface for the log content that can be larger than the visible area
+    log_content_height = max(HEIGHT, (len(game.move_log) // 2 + 2) * 30)
+    log_content = pygame.Surface((log_width, log_content_height))
+    log_content.fill((100, 100, 100))
     
+    # Draw the log content
     title = large_font.render("Move Log", True, WHITE)
-    screen.blit(title, (log_x + (log_width - title.get_width()) // 2, log_y + 10))
+    log_content.blit(title, ((log_width - title.get_width()) // 2, 10))
     
-    move_y = log_y + 50
+    move_y = 50
     move_number = 1
+    
+    # Track the current scroll position (you'll need to add this as a game variable)
+    if not hasattr(game, 'log_scroll'):
+        game.log_scroll = 0
     
     for i in range(0, len(game.move_log), 2):
         num_text = font.render(f"{move_number}.", True, WHITE)
-        screen.blit(num_text, (log_x + 10, move_y))
+        log_content.blit(num_text, (10, move_y))
         
         if i < len(game.move_log):
             white_move = font.render(game.move_log[i], True, WHITE)
-            screen.blit(white_move, (log_x + 50, move_y))
+            log_content.blit(white_move, (50, move_y))
         
         if i + 1 < len(game.move_log):
             black_move = font.render(game.move_log[i+1], True, WHITE)
-            screen.blit(black_move, (log_x + 150, move_y))
+            log_content.blit(black_move, (150, move_y))
         
         move_y += 30
         move_number += 1
+    
+    # Draw the log background
+    pygame.draw.rect(screen, (50, 50, 50), (log_x - 5, log_y - 5, log_width + 10, log_height + 10))
+    
+    # Create a clipping area for the log content
+    clip_rect = pygame.Rect(log_x, log_y, log_width, log_height)
+    old_clip = screen.get_clip()
+    screen.set_clip(clip_rect)
+    
+    # Draw the visible portion of the log content
+    screen.blit(log_content, (log_x, log_y - game.log_scroll))
+    
+    # Reset clipping
+    screen.set_clip(old_clip)
+    
+    # Draw scrollbar if needed
+    if log_content_height > log_height:
+        scrollbar_width = 10
+        scrollbar_x = log_x + log_width - scrollbar_width
         
-        if move_y > log_y + log_height - 30:
-            break
+        # Calculate scrollbar thumb position and size
+        thumb_height = max(30, int((log_height / log_content_height) * log_height))
+        thumb_position = int((game.log_scroll / (log_content_height - log_height)) * (log_height - thumb_height))
+        
+        # Draw scrollbar track
+        pygame.draw.rect(screen, (70, 70, 70), (scrollbar_x, log_y, scrollbar_width, log_height))
+        
+        # Draw scrollbar thumb
+        pygame.draw.rect(screen, (120, 120, 120), (scrollbar_x, log_y + thumb_position, scrollbar_width, thumb_height))
 
 def draw_game_status(game):
     status_y = HEIGHT - 40
@@ -794,6 +828,14 @@ def main():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
+
+            elif event.type == MOUSEWHEEL:
+                if hasattr(game, 'log_scroll'):
+                    # Adjust scroll position based on wheel movement
+                    game.log_scroll -= event.y * 30  # Scroll speed
+                    # Clamp the scroll position
+                    log_content_height = max(HEIGHT, (len(game.move_log) // 2 + 2) * 30)
+                    game.log_scroll = max(0, min(game.log_scroll, log_content_height - (HEIGHT - 30)))
             
             elif event.type == MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left click
