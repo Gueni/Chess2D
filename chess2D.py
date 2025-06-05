@@ -7,8 +7,8 @@ import sys
 pygame.init()
 
 # Screen dimensions
-WIDTH, HEIGHT = 1050, 800
-BOARD_SIZE = 800
+WIDTH, HEIGHT = 1050, 700
+BOARD_SIZE = 700
 SQUARE_SIZE = BOARD_SIZE // 8
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Chess 2D")
@@ -56,7 +56,7 @@ class ChessGame:
                     try:
                         piece_name = file.split('.')[0]
                         image = pygame.image.load(os.path.join(piece_dir, file))
-                        self.pieces[piece_name] = pygame.transform.scale(image, (SQUARE_SIZE-10, SQUARE_SIZE-10))
+                        self.pieces[piece_name] = pygame.transform.scale(image, (SQUARE_SIZE, SQUARE_SIZE))
                     except Exception as e:
                         print(f"Couldn't load piece {file}: {e}")
         else:
@@ -452,31 +452,6 @@ class ChessGame:
         opponent_color = 'black' if self.current_turn == 'white' else 'white'
         self.check = self.is_in_check(opponent_color)
 
-        # Check for checkmate or stalemate
-        has_legal_move = False
-        for row in range(8):
-            for col in range(8):
-                piece = self.board[row][col]
-                if piece and piece['color'] == opponent_color:
-                    for r in range(8):
-                        for c in range(8):
-                            if self.is_valid_move((row, col), (r, c)):
-                                has_legal_move = True
-                                break
-                        if has_legal_move:
-                            break
-                    if has_legal_move:
-                        break
-            if has_legal_move:
-                break
-        
-        if not has_legal_move:
-            self.game_over = True
-            if self.check:
-                self.winner = self.current_turn
-            else:
-                self.winner = None  # Stalemate
-
         # Log the move
         move_notation = self.get_move_notation(start, end, piece, target)
         self.move_log.append(move_notation)
@@ -484,8 +459,8 @@ class ChessGame:
         # Switch turns
         self.current_turn = opponent_color
 
+        # Only check for checkmate/stalemate after the opponent has moved
         return True
-
     def get_move_notation(self, start, end, piece, target):
         letters = 'abcdefgh'
         start_col, start_row = letters[start[1]], 8 - start[0]
@@ -538,36 +513,10 @@ class ChessGame:
         opponent_color = 'black' if self.current_turn == 'white' else 'white'
         self.check = self.is_in_check(opponent_color)
         
-        # Check for checkmate or stalemate
-        has_legal_move = False
-        for r in range(8):
-            for c in range(8):
-                p = self.board[r][c]
-                if p and p['color'] == opponent_color:
-                    for end_r in range(8):
-                        for end_c in range(8):
-                            if self.is_valid_move((r, c), (end_r, end_c)):
-                                has_legal_move = True
-                                break
-                        if has_legal_move:
-                            break
-                    if has_legal_move:
-                        break
-            if has_legal_move:
-                break
-        
-        if not has_legal_move:
-            self.game_over = True
-            if self.check:
-                self.winner = self.current_turn
-            else:
-                self.winner = None  # Stalemate
-        
         # Switch turns
         self.current_turn = opponent_color
         
         return True
-
 def draw_board(game):
     # Draw the chess board with coordinates
     for row in range(8):
