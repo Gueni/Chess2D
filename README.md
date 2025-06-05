@@ -8,32 +8,42 @@
 <div align="center">
   <img src="chess.ico" alt="Chess Icon" width="100"/>
   <h1>♔ Chess 2D ♚</h1>
-
 </div>
 
-A classic chess game implementation in Python using Pygame with all standard chess rules and move validation.
+A feature-rich chess game implementation in Python using Pygame with Stockfish AI opponent and sound effects.
 
 ![Chess 2D Screenshot](Screenshot.png)
 
 ## Features
 
-- Complete chess rules implementation:
+- **Complete chess rules implementation**:
   - All piece movements (including en passant and castling)
   - Check/checkmate detection
   - Pawn promotion
   - Move validation
-- Clean graphical interface with:
+- **Stockfish AI integration**:
+  - Adjustable difficulty levels
+  - Human vs AI or AI vs AI modes
+  - Configurable thinking time
+- **Sound effects**:
+  - Move sounds
+  - Capture sounds
+  - Check/checkmate notifications
+  - Promotion sounds
+- **Clean graphical interface**:
   - Chess board with coordinates
   - Move highlighting
-  - Move history log
+  - Scrollable move history log
   - Game status display
-- Fallback graphics when piece images aren't available
-- PyInstaller compatible resource loading
+- **Fallback graphics** when piece images aren't available
+- **PyInstaller compatible** resource loading
 
 ## Requirements
 
 - Python 3.6+
 - Pygame
+- python-chess (for Stockfish integration)
+- Stockfish engine (included in repository)
 
 ## Installation
 

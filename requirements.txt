@@ -1,0 +1,10 @@
+List          == unknown
+chess         == 1.11.2
+chess.engine  == unknown
+os            == unknown
+pkg_resources == unknown
+pygame        == 2.6.1
+pygame.locals == unknown
+re            == unknown
+sys           == unknown
+typing        == unknown
