@@ -60,6 +60,20 @@ font = pygame.font.SysFont('Arial', 18)
 large_font = pygame.font.SysFont('Arial', 24)
 coord_font = pygame.font.SysFont('Arial', 16, bold=True)
 
+# Sound effects
+try:
+    pygame.mixer.init()
+    capture_sound = pygame.mixer.Sound('D:/WORKSPACE/Chess2D/sound/capture.mp3')
+    castle_sound = pygame.mixer.Sound('D:/WORKSPACE/Chess2D/sound/castle.mp3')
+    check_sound = pygame.mixer.Sound('D:/WORKSPACE/Chess2D/sound/check.mp3')
+    move_sound = pygame.mixer.Sound('D:/WORKSPACE/Chess2D/sound/move.mp3')
+    notify_sound = pygame.mixer.Sound('D:/WORKSPACE/Chess2D/sound/notify.mp3')
+    promote_sound = pygame.mixer.Sound('D:/WORKSPACE/Chess2D/sound/promote.mp3')
+    SOUND_ENABLED = True
+except Exception as e:
+    print(f"Could not load sound effects: {e}")
+    SOUND_ENABLED = False
+
 class ChessGame:
     def __init__(self, player_color='white'):
         self.board = self.initialize_board()
@@ -513,12 +527,25 @@ class ChessGame:
             self.promoting_pawn = (end_row, end_col)
             self.board[end_row][end_col] = piece
             self.board[start_row][start_col] = None
+            if SOUND_ENABLED:
+                notify_sound.play()
             return True
+
+        # Play appropriate sound effect
+        if SOUND_ENABLED:
+            if piece['type'] == 'king' and abs(start_col - end_col) == 2:  # Castling
+                castle_sound.play()
+            elif target:  # Capture
+                capture_sound.play()
+            else:  # Regular move
+                move_sound.play()
 
         if piece['type'] == 'pawn' and (end_row, end_col) == self.en_passant_target:
             captured_row = start_row
             captured_col = end_col
             self.board[captured_row][captured_col] = None
+            if SOUND_ENABLED:
+                capture_sound.play()
 
         if piece['type'] == 'king' and abs(start_col - end_col) == 2:
             if end_col > start_col:
@@ -563,6 +590,9 @@ class ChessGame:
         
         opponent_color = 'black' if self.current_turn == 'white' else 'white'
         self.check = self.is_in_check(opponent_color)
+        
+        if self.check and SOUND_ENABLED:
+            check_sound.play()
 
         move_notation = self.get_move_notation(start, end, piece, target)
         self.move_log.append(move_notation)
@@ -606,6 +636,9 @@ class ChessGame:
         
         piece['type'] = piece_type
         
+        if SOUND_ENABLED:
+            promote_sound.play()
+        
         promotion_notation = f"{self.pos_to_notation(row, col)}={piece_type[0].upper()}"
         if self.move_log:
             self.move_log[-1] += promotion_notation
@@ -614,6 +647,9 @@ class ChessGame:
         
         opponent_color = 'black' if self.current_turn == 'white' else 'white'
         self.check = self.is_in_check(opponent_color)
+        
+        if self.check and SOUND_ENABLED:
+            check_sound.play()
         
         self.current_turn = opponent_color
         
@@ -787,6 +823,8 @@ def main():
                             game.selected_piece = (row, col)
                             game.valid_moves = [(r, c) for r in range(8) for c in range(8)
                                           if game.is_valid_move((row, col), (r, c))]
+                            if SOUND_ENABLED:
+                                notify_sound.play()
                         elif game.selected_piece:
                             if (row, col) in game.valid_moves:
                                 game.move_piece(game.selected_piece, (row, col))
