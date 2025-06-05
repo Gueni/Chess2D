@@ -1,4 +1,15 @@
 # Chess 2D
+[![Python](https://img.shields.io/badge/code-Python-3776AB?style=flat&logo=python)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Platform](https://img.shields.io/badge/platform-cross--platform-lightgrey)]()
+[![Made with](https://img.shields.io/badge/made%20with-love-red)]()
+
+<div align="center">
+  <img src="chess.ico" alt="Chess Icon" width="100"/>
+  <h1>♔ Chess 2D ♚</h1>
+
+</div>
 
 A classic chess game implementation in Python using Pygame with all standard chess rules and move validation.
 
