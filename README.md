@@ -6,7 +6,7 @@
 [![Made with](https://img.shields.io/badge/made%20with-love-red)]()
 
 <div align="center">
-  <img src="chess.ico" alt="Chess Icon" width="70"/>
+  <img src="chess.ico" alt="Chess Icon" width="100"/>
   <h1>♔ Chess 2D ♚</h1>
 
 </div>
