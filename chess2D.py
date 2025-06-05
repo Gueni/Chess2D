@@ -5,7 +5,19 @@ import sys
 
 # Initialize pygame
 pygame.init()
-
+# Load the window icon
+try:
+    icon = pygame.image.load('D:/WORKSPACE/Chess2D/chess.png')
+    pygame.display.set_icon(icon)
+except:
+    try:
+        # Create a simple fallback icon
+        icon = pygame.Surface((32, 32))
+        icon.fill((50, 50, 50))  # Dark background
+        pygame.draw.rect(icon, (200, 150, 50), (4, 4, 24, 24))  # Chess board
+        pygame.display.set_icon(icon)
+    except Exception as e:
+        print(f"Could not set window icon: {e}")
 # Screen dimensions
 WIDTH, HEIGHT = 1050, 700
 BOARD_SIZE = 700
