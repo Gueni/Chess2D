@@ -7,7 +7,7 @@
 
 <div align="center">
   <img src="chess.ico" alt="Chess Icon" width="100"/>
-  <h1>♔ Chess 2D ♚</h1>
+  <h1> Chess 2D </h1>
 </div>
 
 A feature-rich chess game implementation in Python using Pygame with Stockfish AI opponent and sound effects.
