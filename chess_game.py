@@ -1,3 +1,4 @@
+import subprocess
 import pygame
 import os
 from pygame.locals import *
@@ -142,15 +143,24 @@ class ChessGame:
 
     def init_stockfish(self):
         try:
-            # Use raw string and verify path
-            self.engine_path = ChessEngine()
+            _DIR = os.path.dirname(os.path.abspath(__file__))
+            self.engine_path = os.path.join(SCRIPT_DIR, "stockfish/stockfish-windows-x86-64-avx2.exe")
             
-            # Verify the file exists
             if not os.path.exists(self.engine_path):
                 raise FileNotFoundError(f"Stockfish not found at {self.engine_path}")
             
-            # Try to start the engine
-            self.engine = chess.engine.SimpleEngine.popen_uci(self.engine_path)
+            # Use subprocess to hide the console window
+            if sys.platform == 'win32':
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                startupinfo.wShowWindow = subprocess.SW_HIDE
+                self.engine = chess.engine.SimpleEngine.popen_uci(
+                    self.engine_path,
+                    startupinfo=startupinfo
+                )
+            else:
+                self.engine = chess.engine.SimpleEngine.popen_uci(self.engine_path)
+                
             print("Stockfish initialized successfully!")
             
             # Test with a simple position
