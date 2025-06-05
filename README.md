@@ -28,7 +28,7 @@ A classic chess game implementation in Python using Pygame with all standard che
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/Chess2D.git
+git clone https://github.com/gueni/Chess2D.git
 cd Chess2D
 ```
 
