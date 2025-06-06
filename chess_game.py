@@ -215,30 +215,34 @@ class ChessGame:
         return False
 
     def load_images(self):
-        self.pieces     = {}
-        piece_dir       = resource_path('pieces')
+        self.pieces = {}
+        piece_dir = resource_path('pieces')
         if os.path.exists(piece_dir):
             for file in os.listdir(piece_dir):
                 if file.endswith('.png') or file.endswith('.svg'):
                     try:
-                        piece_name              = file.split('.')[0]
-                        image_path              = os.path.join(piece_dir, file)
-                        image                   = pygame.image.load(image_path)
-                        self.pieces[piece_name] = pygame.transform.scale(image, (SQUARE_SIZE, SQUARE_SIZE))
+                        piece_name = file.split('.')[0]
+                        image_path = os.path.join(piece_dir, file)
+                        image = pygame.image.load(image_path)
+                        # Scale to 90% of square size and center
+                        scaled_size = int(SQUARE_SIZE * 1.5)
+                        self.pieces[piece_name] = pygame.transform.scale(image, (scaled_size, scaled_size))
                     except Exception as e:
                         print(f"Couldn't load piece {file}: {e}")
         else:
             for color in ['white', 'black']:
                 for piece_type in ['pawn', 'rook', 'knight', 'bishop', 'queen', 'king']:
-                    key                 = f"{piece_type}-{color[0]}"
-                    surf                = pygame.Surface((SQUARE_SIZE-10, SQUARE_SIZE-10), pygame.SRCALPHA)
-                    col                 = (255, 255, 255) if color == 'white' else (50, 50, 50)
-                    pygame.draw.circle(surf, col, (SQUARE_SIZE//2-5, SQUARE_SIZE//2-5), SQUARE_SIZE//2-15)
-                    letter              = piece_type[0].upper() if piece_type != 'knight' else 'N'
-                    text                = coord_font.render(letter, True, (0, 0, 0) if color == 'white' else (255, 255, 255))
-                    text_rect           = text.get_rect(center=(SQUARE_SIZE//2-5, SQUARE_SIZE//2-5))
+                    key = f"{piece_type}-{color[0]}"
+                    # Create larger pieces with better centering
+                    surf = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE), pygame.SRCALPHA)
+                    col = (255, 255, 255) if color == 'white' else (50, 50, 50)
+                    radius = SQUARE_SIZE // 2 - 5
+                    pygame.draw.circle(surf, col, (SQUARE_SIZE//2, SQUARE_SIZE//2), radius)
+                    letter = piece_type[0].upper() if piece_type != 'knight' else 'N'
+                    text = coord_font.render(letter, True, (0, 0, 0) if color == 'white' else (255, 255, 255))
+                    text_rect = text.get_rect(center=(SQUARE_SIZE//2, SQUARE_SIZE//2))
                     surf.blit(text, text_rect)
-                    self.pieces[key]    = surf
+                    self.pieces[key] = surf
 
     def initialize_board(self):
         board                   = [[None for _ in range(8)] for _ in range(8)]
@@ -706,34 +710,40 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def draw_board(game):
+    # Draw chess board squares
     for row in range(8):
         for col in range(8):
             color = LIGHT_BROWN if (row + col) % 2 == 0 else DARK_BROWN
             pygame.draw.rect(screen, color, (col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
     
+    # Draw file letters (a-h)
     letters = 'abcdefgh'
     for col in range(8):
         letter = coord_font.render(letters[col], True, COORD_COLOR)
-        screen.blit(letter, (col * SQUARE_SIZE + SQUARE_SIZE - 15, BOARD_SIZE - 20))
-        screen.blit(letter, (col * SQUARE_SIZE + 5, 5))
+        screen.blit(letter, (col * SQUARE_SIZE + SQUARE_SIZE - 15, BOARD_SIZE - 20))  # Bottom
+        screen.blit(letter, (col * SQUARE_SIZE + 5, 5))  # Top
     
+    # Draw rank numbers (1-8)
     for row in range(8):
         number = coord_font.render(str(8 - row), True, COORD_COLOR)
-        screen.blit(number, (5, row * SQUARE_SIZE + 5))
-        screen.blit(number, (BOARD_SIZE - 15, row * SQUARE_SIZE + SQUARE_SIZE - 20))
+        screen.blit(number, (5, row * SQUARE_SIZE + 5))  # Left
+        screen.blit(number, (BOARD_SIZE - 15, row * SQUARE_SIZE + SQUARE_SIZE - 20))  # Right
 
+    # Highlight selected piece
     if game.selected_piece:
         row, col = game.selected_piece
         s = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE), pygame.SRCALPHA)
         s.fill(SELECTED)
         screen.blit(s, (col * SQUARE_SIZE, row * SQUARE_SIZE))
         
+        # Highlight valid moves
         for move in game.valid_moves:
             r, c = move
             s = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE), pygame.SRCALPHA)
             s.fill(HIGHLIGHT)
             screen.blit(s, (c * SQUARE_SIZE, r * SQUARE_SIZE))
 
+    # Highlight king in check
     for row in range(8):
         for col in range(8):
             piece = game.board[row][col]
@@ -743,6 +753,7 @@ def draw_board(game):
                 screen.blit(s, (col * SQUARE_SIZE, row * SQUARE_SIZE))
                 break
 
+    # Draw pieces (updated for centering)
     for row in range(8):
         for col in range(8):
             piece = game.board[row][col]
@@ -750,8 +761,10 @@ def draw_board(game):
                 piece_key = f"{piece['type']}-{piece['color'][0]}"
                 piece_img = game.pieces.get(piece_key, None)
                 if piece_img:
+                    # Calculate centered position
                     screen.blit(piece_img, 
-                              (col * SQUARE_SIZE + 5, row * SQUARE_SIZE + 5))
+                              (col * SQUARE_SIZE + 15, 
+                               row * SQUARE_SIZE + 15))
 
 def draw_promotion_menu(game):
     if not game.promoting_pawn:
@@ -778,7 +791,10 @@ def draw_promotion_menu(game):
         piece_key = f"{piece_type}-{color[0]}"
         piece_img = game.pieces.get(piece_key, None)
         if piece_img:
-            screen.blit(piece_img, (menu_x + 5, menu_y + i * SQUARE_SIZE + 5))
+            # Center the promotion pieces
+            x_offset = (SQUARE_SIZE - piece_img.get_width()) // 2
+            y_offset = i * SQUARE_SIZE + (SQUARE_SIZE - piece_img.get_height()) // 2
+            screen.blit(piece_img, (menu_x + x_offset, menu_y + y_offset))
 
 def draw_move_log(game):
     log_x = BOARD_SIZE + 10
