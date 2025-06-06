@@ -867,14 +867,14 @@ def main():
     # Create buttons
     export_button = Button(
         BOARD_SIZE + 20, 
-        HEIGHT - 100, 
+        HEIGHT - 50, 
         BUTTON_WIDTH, 
         BUTTON_HEIGHT, 
         "Export Log"
     )
     new_game_button = Button(
         BOARD_SIZE + 20 + BUTTON_WIDTH + 10, 
-        HEIGHT - 100, 
+        HEIGHT - 50, 
         BUTTON_WIDTH, 
         BUTTON_HEIGHT, 
         "New Game"
