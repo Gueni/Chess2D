@@ -1,0 +1,5 @@
+Chess Game Move Log
+==================
+
+1. g2g4	d7d5
+2. Bf1g2	Bc8xg4

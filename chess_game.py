@@ -26,6 +26,8 @@ import sys
 import chess
 import chess.engine
 import platform
+import tkinter as tk
+from tkinter import filedialog
 #? -------------------------------------------------------------------------------
 pygame.init()                                                      
 script_dir      = os.path.dirname(os.path.abspath(__file__))  
@@ -37,6 +39,11 @@ BOARD_SIZE      = 700
 SQUARE_SIZE     = BOARD_SIZE // 8
 screen          = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Chess 2D")
+BUTTON_COLOR    = (70, 70, 70)
+BUTTON_HOVER    = (100, 100, 100)
+BUTTON_TEXT     = (255, 255, 255)
+BUTTON_WIDTH    = 150
+BUTTON_HEIGHT   = 40
 LIGHT_BROWN     = (240, 217, 181)
 DARK_BROWN      = (181, 136, 99)
 WHITE           = (255, 255, 255)
@@ -122,9 +129,6 @@ class ChessGame:
                 self.engine                 = chess.engine.SimpleEngine.popen_uci(self.engine_path,startupinfo=startupinfo)
             else:
                 self.engine     = chess.engine.SimpleEngine.popen_uci(self.engine_path)
-            board           = chess.Board()
-            result          = self.engine.play(board, chess.engine.Limit(time=0.1))
-            print("Stockfish test move:", result.move)
             
         except Exception as e:
             print(f"Failed to initialize Stockfish: {e}")
@@ -635,6 +639,64 @@ class ChessGame:
         if self.engine:
             self.engine.quit()
 
+    def export_move_log(self):
+        try:
+            import tkinter as tk
+            from tkinter import filedialog
+            root = tk.Tk()
+            root.withdraw()  # Hide the main window
+            
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+                title="Save move log as",
+                initialfile="chess_log.txt"
+            )
+            
+            if file_path:  # Only proceed if user didn't cancel
+                with open(file_path, "w") as f:
+                    f.write("Chess Game Move Log\n")
+                    f.write("==================\n\n")
+                    for i in range(0, len(self.move_log), 2):
+                        move_num = (i // 2) + 1
+                        white_move = self.move_log[i] if i < len(self.move_log) else ""
+                        black_move = self.move_log[i+1] if i+1 < len(self.move_log) else ""
+                        f.write(f"{move_num}. {white_move}\t{black_move}\n")
+                print(f"Move log exported to {file_path}")
+                if SOUND_ENABLED:
+                    notify_sound.play()
+        except Exception as e:
+            print(f"Error exporting move log: {e}")
+
+    def reset_game(self):
+        self.__init__(player_color=self.player_color)
+        if SOUND_ENABLED:
+            notify_sound.play()
+
+class Button:
+    def __init__(self, x, y, width, height, text):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.text = text
+        self.is_hovered = False
+        
+    def draw(self, surface):
+        color = BUTTON_HOVER if self.is_hovered else BUTTON_COLOR
+        pygame.draw.rect(surface, color, self.rect, border_radius=5)
+        pygame.draw.rect(surface, WHITE, self.rect, 2, border_radius=5)
+        
+        text_surf = font.render(self.text, True, BUTTON_TEXT)
+        text_rect = text_surf.get_rect(center=self.rect.center)
+        surface.blit(text_surf, text_rect)
+        
+    def check_hover(self, pos):
+        self.is_hovered = self.rect.collidepoint(pos)
+        return self.is_hovered
+        
+    def is_clicked(self, pos, event):
+        if event.type == MOUSEBUTTONDOWN and event.button == 1:
+            return self.rect.collidepoint(pos)
+        return False
+    
 def resource_path(relative_path):
     """Get the absolute path to a resource, works for dev and PyInstaller."""
     if hasattr(sys, '_MEIPASS'):
@@ -799,15 +861,38 @@ def draw_game_status(game):
     screen.blit(status_surface, (10, status_y))
 
 def main():
-    clock   = pygame.time.Clock()
-    game    = ChessGame(player_color='white') 
+    clock = pygame.time.Clock()
+    game = ChessGame(player_color='white')
+    
+    # Create buttons
+    export_button = Button(
+        BOARD_SIZE + 20, 
+        HEIGHT - 100, 
+        BUTTON_WIDTH, 
+        BUTTON_HEIGHT, 
+        "Export Log"
+    )
+    new_game_button = Button(
+        BOARD_SIZE + 20 + BUTTON_WIDTH + 10, 
+        HEIGHT - 100, 
+        BUTTON_WIDTH, 
+        BUTTON_HEIGHT, 
+        "New Game"
+    )
+    
     while True:
         if game.current_turn != game.player_color and not game.promoting_pawn:
             game.make_ai_move()
+            
+        mouse_pos = pygame.mouse.get_pos()
+        export_button.check_hover(mouse_pos)
+        new_game_button.check_hover(mouse_pos)
+        
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
+                
             elif event.type == MOUSEWHEEL:
                 if hasattr(game, 'log_scroll'):
                     game.log_scroll -= event.y * 30 
@@ -815,7 +900,11 @@ def main():
                     game.log_scroll = max(0, min(game.log_scroll, log_content_height - (HEIGHT - 30)))
             
             elif event.type == MOUSEBUTTONDOWN:
-                if event.button == 1:  
+                if export_button.is_clicked(mouse_pos, event):
+                    game.export_move_log()
+                elif new_game_button.is_clicked(mouse_pos, event):
+                    game.reset_game()
+                elif event.button == 1:  # Left click
                     col = event.pos[0] // SQUARE_SIZE
                     row = event.pos[1] // SQUARE_SIZE
                     if game.current_turn != game.player_color:
@@ -859,8 +948,11 @@ def main():
         draw_move_log(game)
         draw_game_status(game)
         
+        # Draw buttons
+        export_button.draw(screen)
+        new_game_button.draw(screen)
+        
         pygame.display.flip()
         clock.tick(60)
-
 if __name__ == "__main__":
     main()
