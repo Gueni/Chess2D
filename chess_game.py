@@ -1,3 +1,23 @@
+
+#!/usr/bin/env python
+# coding=utf-8
+#? -------------------------------------------------------------------------------
+#?
+#?                 ________  __________________    ___   ____ 
+#?                / ____/ / / / ____/ ___/ ___/   |__ \ / __ \
+#?               / /   / /_/ / __/  \__ \\__ \    __/ // / / /
+#?              / /___/ __  / /___ ___/ /__/ /   / __// /_/ / 
+#?              \____/_/ /_/_____//____/____/   /____/_____/  
+#?
+#? Name:        chess_game.py
+#? Purpose:     A 2D Chess game with AI opponent using Stockfish
+#?
+#? Author:      Mohamed Gueni (mohamedgueni@outlook.com)
+#? Based on:    python-chess library & Stockfish engine
+#? Created:     06/06/2025
+#? Version:     0.2
+#? Licence:     Refer to the LICENSE file
+#? -------------------------------------------------------------------------------
 import subprocess
 import pygame
 import os
@@ -13,89 +33,66 @@ except ImportError:
     STOCKFISH_AVAILABLE = False
     chess = None
     engine = None
-
-def resource_path(relative_path):
-    """Get the absolute path to a resource, works for dev and PyInstaller."""
-    if hasattr(sys, '_MEIPASS'):
-        base_path = sys._MEIPASS
-    else:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
-
-# Initialize pygame
-pygame.init()
-# Get the directory where your script is located
-script_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Construct the path to your image file
-image_path = os.path.join(script_dir, 'chess.png')
-
-# Load the window icon
+import os
+import sys
+import platform
+#? -------------------------------------------------------------------------------
+pygame.init()                                                       # Initialize pygame
+script_dir      = os.path.dirname(os.path.abspath(__file__))            # Get the directory where your script is located
+image_path      = os.path.join(script_dir, 'chess.png')                 # Construct the path to your image file
 try:
-    # Load the image
-    icon = pygame.image.load(image_path)
+    icon        = pygame.image.load(image_path)                            # Load the window icon
     pygame.display.set_icon(icon)
 except:
     try:
-        icon = pygame.Surface((32, 32))
+        icon    = pygame.Surface((32, 32))
         icon.fill((50, 50, 50))
         pygame.draw.rect(icon, (200, 150, 50), (4, 4, 24, 24))
         pygame.display.set_icon(icon)
     except Exception as e:
         print(f"Could not set window icon: {e}")
 
-# Screen dimensions
-WIDTH, HEIGHT = 1050, 700
-BOARD_SIZE = 700
-SQUARE_SIZE = BOARD_SIZE // 8
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+WIDTH, HEIGHT   = 1050, 700 # Screen dimensions
+BOARD_SIZE      = 700
+SQUARE_SIZE     = BOARD_SIZE // 8
+screen          = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Chess 2D")
-
-# Colors
-LIGHT_BROWN = (240, 217, 181)
-DARK_BROWN = (181, 136, 99)
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-HIGHLIGHT = (100, 255, 100, 150)
-SELECTED = (255, 255, 100, 150)
-CHECK = (255, 0, 0, 150)
-PROMOTION_BG = (70, 70, 70)
-COORD_COLOR = (120, 120, 120)
-
-# Font
-font = pygame.font.SysFont('Arial', 18)
-large_font = pygame.font.SysFont('Arial', 24)
-coord_font = pygame.font.SysFont('Arial', 16, bold=True)
-import os
-import sys
-import platform
-
+LIGHT_BROWN     = (240, 217, 181)
+DARK_BROWN      = (181, 136, 99)
+WHITE           = (255, 255, 255)
+BLACK           = (0, 0, 0)
+HIGHLIGHT       = (100, 255, 100, 150)
+SELECTED        = (255, 255, 100, 150)
+CHECK           = (255, 0, 0, 150)
+PROMOTION_BG    = (70, 70, 70)
+COORD_COLOR     = (120, 120, 120)
+font            = pygame.font.SysFont('Arial', 18)
+large_font      = pygame.font.SysFont('Arial', 24)
+coord_font      = pygame.font.SysFont('Arial', 16, bold=True)
+#? -------------------------------------------------------------------------------
 class ChessEngine:
     def __init__(self):
-        self.engine_dir = os.path.join(os.path.dirname(__file__), "stockfish")
-        self.engine_path = self._get_engine_path()
+        self.engine_dir     = os.path.join(os.path.dirname(__file__), "stockfish")
+        self.engine_path    = self._get_engine_path()
 
     def _get_engine_path(self):
         """Return the correct Stockfish executable path based on the OS."""
-        system = platform.system()
+        system              = platform.system()
         
         if system == "Windows":
-            exe_name = "stockfish-windows-x86-64-avx2.exe"
+            exe_name        = "stockfish-windows-x86-64-avx2.exe"
         elif system == "Linux":
-            exe_name = "stockfish-ubuntu-x86-64-avx2"  # Example for Linux
-        elif system == "Darwin":  # macOS
-            exe_name = "stockfish-macos-x86-64-avx2"   # Example for macOS
+            exe_name        = "stockfish-ubuntu-x86-64-avx2"    # Example for Linux
+        elif system == "Darwin":                                # macOS
+            exe_name        = "stockfish-macos-x86-64-avx2"     # Example for macOS
         else:
             raise OSError(f"Unsupported OS: {system}")
-
-        path = os.path.join(self.engine_dir, exe_name)
-        
+        path                = os.path.join(self.engine_dir, exe_name)
         if not os.path.exists(path):
             raise FileNotFoundError(f"Stockfish engine not found at: {path}")
-        
         return path
-# Sound effects
-try:
+
+try:        # Sound effects
     pygame.mixer.init()
     # Get the directory where the script is located
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -711,6 +708,14 @@ class ChessGame:
     def __del__(self):
         if self.engine:
             self.engine.quit()
+
+def resource_path(relative_path):
+    """Get the absolute path to a resource, works for dev and PyInstaller."""
+    if hasattr(sys, '_MEIPASS'):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 def draw_board(game):
     for row in range(8):
