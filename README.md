@@ -11,10 +11,10 @@
 </div>
 
 A feature-rich chess game implementation in Python using Pygame with Stockfish AI opponent and sound effects.
+New verion : https://github.com/Gueni/Chess2D/blob/master/dist/chess_game.zip
 
 ![Chess 2D Screenshot](Screenshot.png)
 
-New verion : https://github.com/Gueni/Chess2D/blob/master/dist/chess_game.zip
 
 ## Features
 
