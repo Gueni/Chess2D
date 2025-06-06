@@ -7,14 +7,14 @@
 
 <div align="center">
   <img src="chess.ico" alt="Chess Icon" width="100"/>
-  <h1>♔ Chess 2D ♚</h1>
+  <h1> Chess 2D </h1>
 </div>
 
 A feature-rich chess game implementation in Python using Pygame with Stockfish AI opponent and sound effects.
+New verion : https://github.com/Gueni/Chess2D/blob/master/dist/chess_game.zip
 
 ![Chess 2D Screenshot](Screenshot.png)
 
-New verion : https://github.com/Gueni/Chess2D/blob/master/dist/chess_game.zip
 
 ## Features
 
@@ -69,10 +69,3 @@ cd Chess2D
  - Mouse: Select and move pieces
 
  - ESC: Cancel current selection
-
-## ToDo
- - Added scroll functionality for move history console
- - Implemented look menu in console UI
- - Fixed various button interaction bugs
- - Improved pawn promotion menu stability
- - Enhanced move validation edge cases
