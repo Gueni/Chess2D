@@ -24,35 +24,15 @@ import os
 from pygame.locals import *
 import sys
 import chess
-try:
-    import chess
-    import chess.engine
-    STOCKFISH_AVAILABLE = True
-except ImportError:
-    print("python-chess package not installed. AI will not be available.")
-    STOCKFISH_AVAILABLE = False
-    chess = None
-    engine = None
-import os
-import sys
+import chess.engine
 import platform
 #? -------------------------------------------------------------------------------
-pygame.init()                                                       # Initialize pygame
-script_dir      = os.path.dirname(os.path.abspath(__file__))            # Get the directory where your script is located
-image_path      = os.path.join(script_dir, 'chess.png')                 # Construct the path to your image file
-try:
-    icon        = pygame.image.load(image_path)                            # Load the window icon
-    pygame.display.set_icon(icon)
-except:
-    try:
-        icon    = pygame.Surface((32, 32))
-        icon.fill((50, 50, 50))
-        pygame.draw.rect(icon, (200, 150, 50), (4, 4, 24, 24))
-        pygame.display.set_icon(icon)
-    except Exception as e:
-        print(f"Could not set window icon: {e}")
-
-WIDTH, HEIGHT   = 1050, 700 # Screen dimensions
+pygame.init()                                                      
+script_dir      = os.path.dirname(os.path.abspath(__file__))  
+image_path      = os.path.join(script_dir, 'chess.png')  
+icon            = pygame.image.load(image_path)  
+pygame.display.set_icon(icon)
+WIDTH, HEIGHT   = 1050, 700
 BOARD_SIZE      = 700
 SQUARE_SIZE     = BOARD_SIZE // 8
 screen          = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -76,15 +56,13 @@ class ChessEngine:
         self.engine_path    = self._get_engine_path()
 
     def _get_engine_path(self):
-        """Return the correct Stockfish executable path based on the OS."""
         system              = platform.system()
-        
         if system == "Windows":
             exe_name        = "stockfish-windows-x86-64-avx2.exe"
         elif system == "Linux":
-            exe_name        = "stockfish-ubuntu-x86-64-avx2"    # Example for Linux
-        elif system == "Darwin":                                # macOS
-            exe_name        = "stockfish-macos-x86-64-avx2"     # Example for macOS
+            exe_name        = "stockfish-ubuntu-x86-64-avx2"    # Linux
+        elif system == "Darwin":                               
+            exe_name        = "stockfish-macos-x86-64-avx2"     # macOS
         else:
             raise OSError(f"Unsupported OS: {system}")
         path                = os.path.join(self.engine_dir, exe_name)
@@ -92,112 +70,85 @@ class ChessEngine:
             raise FileNotFoundError(f"Stockfish engine not found at: {path}")
         return path
 
-try:        # Sound effects
-    pygame.mixer.init()
-    # Get the directory where the script is located
-    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-    SOUND_DIR = os.path.join(SCRIPT_DIR, "sound")
+pygame.mixer.init()
+SCRIPT_DIR      = os.path.dirname(os.path.abspath(__file__))
+SOUND_DIR       = os.path.join(SCRIPT_DIR, "sound")
 
-    def load_sound(filename):
-        """Load a sound file from the sound directory."""
-        return pygame.mixer.Sound(os.path.join(SOUND_DIR, filename))
+def load_sound(filename):
+    return pygame.mixer.Sound(os.path.join(SOUND_DIR, filename))
 
-    # Load all sounds
-    capture_sound = load_sound("capture.mp3")
-    castle_sound = load_sound("castle.mp3")
-    check_sound = load_sound("check.mp3")
-    move_sound = load_sound("move.mp3")
-    notify_sound = load_sound("notify.mp3")
-    promote_sound = load_sound("promote.mp3")
-    SOUND_ENABLED = True
-except Exception as e:
-    print(f"Could not load sound effects: {e}")
-    SOUND_ENABLED = False
+capture_sound   = load_sound("capture.mp3")
+castle_sound    = load_sound("castle.mp3")
+check_sound     = load_sound("check.mp3")
+move_sound      = load_sound("move.mp3")
+notify_sound    = load_sound("notify.mp3")
+promote_sound   = load_sound("promote.mp3")
+SOUND_ENABLED   = True
 
 class ChessGame:
     def __init__(self, player_color='white'):
-        self.log_scroll = 0  # Add this line
-        self.board = self.initialize_board()
-        self.selected_piece = None
-        self.current_turn = 'white'
-        self.valid_moves = []
-        self.game_over = False
-        self.winner = None
-        self.move_log = []
-        self.en_passant_target = None
-        self.white_castling = {'kingside': True, 'queenside': True}
-        self.black_castling = {'kingside': True, 'queenside': True}
-        self.check = False
-        self.promoting_pawn = None
+        self.log_scroll         = 0 
+        self.board              = self.initialize_board()
+        self.selected_piece     = None
+        self.current_turn       = 'white'
+        self.valid_moves        = []
+        self.game_over          = False
+        self.winner             = None
+        self.move_log           = []
+        self.en_passant_target  = None
+        self.white_castling     = {'kingside': True, 'queenside': True}
+        self.black_castling     = {'kingside': True, 'queenside': True}
+        self.check              = False
+        self.promoting_pawn     = None
         self.load_images()
-        
-        # Stockfish setup
-        self.engine_path = ChessEngine()
-        self.engine = None
-        self.player_color = player_color  # 'white' or 'black'
-        self.ai_thinking = False
+        self.engine_path        = ChessEngine()
+        self.engine             = None
+        self.player_color       = player_color 
+        self.ai_thinking        = False
         self.init_stockfish()
 
     def init_stockfish(self):
         try:
-            _DIR = os.path.dirname(os.path.abspath(__file__))
-            self.engine_path = os.path.join(SCRIPT_DIR, "stockfish/stockfish-windows-x86-64-avx2.exe")
+            _DIR                = os.path.dirname(os.path.abspath(__file__))
+            self.engine_path    = os.path.join(SCRIPT_DIR, "stockfish/stockfish-windows-x86-64-avx2.exe")
             
             if not os.path.exists(self.engine_path):
                 raise FileNotFoundError(f"Stockfish not found at {self.engine_path}")
             
-            # Use subprocess to hide the console window
             if sys.platform == 'win32':
-                startupinfo = subprocess.STARTUPINFO()
-                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                startupinfo.wShowWindow = subprocess.SW_HIDE
-                self.engine = chess.engine.SimpleEngine.popen_uci(
-                    self.engine_path,
-                    startupinfo=startupinfo
-                )
+                startupinfo                 = subprocess.STARTUPINFO()
+                startupinfo.dwFlags        |= subprocess.STARTF_USESHOWWINDOW
+                startupinfo.wShowWindow     = subprocess.SW_HIDE
+                self.engine                 = chess.engine.SimpleEngine.popen_uci(self.engine_path,startupinfo=startupinfo)
             else:
-                self.engine = chess.engine.SimpleEngine.popen_uci(self.engine_path)
-                
-            print("Stockfish initialized successfully!")
-            
-            # Test with a simple position
-            board = chess.Board()
-            result = self.engine.play(board, chess.engine.Limit(time=0.1))
+                self.engine     = chess.engine.SimpleEngine.popen_uci(self.engine_path)
+            board           = chess.Board()
+            result          = self.engine.play(board, chess.engine.Limit(time=0.1))
             print("Stockfish test move:", result.move)
             
         except Exception as e:
             print(f"Failed to initialize Stockfish: {e}")
-            print("Full path attempted:", os.path.abspath(self.engine_path))
-            self.engine = None
+            self.engine     = None
 
     def get_stockfish_move(self):
-        if not self.engine:
-            return None
-            
-        # Convert our board to a chess.Board object
-        board = self.convert_to_chess_board()
-        
+        if not self.engine: return None
+        board       = self.convert_to_chess_board()
         try:
-            # Get the best move from Stockfish with a time limit
-            result = self.engine.play(board, chess.engine.Limit(time=0.5))
+            result  = self.engine.play(board, chess.engine.Limit(time=0.5))
             return result.move
         except Exception as e:
             print(f"Error getting Stockfish move: {e}")
             return None
 
     def convert_to_chess_board(self):
-        """Convert our custom board representation to a chess.Board object"""
-        board = chess.Board()
+        board   = chess.Board()
         board.clear()
-        
-        # Set up the pieces on the board
         for row in range(8):
             for col in range(8):
                 piece = self.board[row][col]
                 if piece:
                     color = chess.WHITE if piece['color'] == 'white' else chess.BLACK
-                    square = chess.square(col, 7 - row)  # chess uses 0-7 rank (rows) and 0-7 files (cols)
-                    
+                    square = chess.square(col, 7 - row)  
                     if piece['type'] == 'pawn':
                         board.set_piece_at(square, chess.Piece(chess.PAWN, color))
                     elif piece['type'] == 'rook':
@@ -239,13 +190,10 @@ class ChessGame:
         if self.current_turn != self.player_color and not self.game_over and not self.promoting_pawn:
             move = self.get_stockfish_move()
             if move:
-                # Convert chess.Move to our coordinates
-                from_col = chess.square_file(move.from_square)
-                from_row = 7 - chess.square_rank(move.from_square)
-                to_col = chess.square_file(move.to_square)
-                to_row = 7 - chess.square_rank(move.to_square)
-                
-                # Handle promotion
+                from_col    = chess.square_file(move.from_square)
+                from_row    = 7 - chess.square_rank(move.from_square)
+                to_col      = chess.square_file(move.to_square)
+                to_row      = 7 - chess.square_rank(move.to_square)
                 promotion = None
                 if move.promotion:
                     if move.promotion == chess.QUEEN:
@@ -256,8 +204,6 @@ class ChessGame:
                         promotion = 'bishop'
                     elif move.promotion == chess.KNIGHT:
                         promotion = 'knight'
-                
-                # Make the move
                 if self.move_piece((from_row, from_col), (to_row, to_col)):
                     if promotion and self.promoting_pawn:
                         self.promote_pawn(promotion)
@@ -265,50 +211,44 @@ class ChessGame:
         return False
 
     def load_images(self):
-        self.pieces = {}
-        piece_dir = resource_path('pieces')
-        
+        self.pieces     = {}
+        piece_dir       = resource_path('pieces')
         if os.path.exists(piece_dir):
             for file in os.listdir(piece_dir):
                 if file.endswith('.png') or file.endswith('.svg'):
                     try:
-                        piece_name = file.split('.')[0]
-                        image_path = os.path.join(piece_dir, file)
-                        image = pygame.image.load(image_path)
+                        piece_name              = file.split('.')[0]
+                        image_path              = os.path.join(piece_dir, file)
+                        image                   = pygame.image.load(image_path)
                         self.pieces[piece_name] = pygame.transform.scale(image, (SQUARE_SIZE, SQUARE_SIZE))
                     except Exception as e:
                         print(f"Couldn't load piece {file}: {e}")
         else:
             for color in ['white', 'black']:
                 for piece_type in ['pawn', 'rook', 'knight', 'bishop', 'queen', 'king']:
-                    key = f"{piece_type}-{color[0]}"
-                    surf = pygame.Surface((SQUARE_SIZE-10, SQUARE_SIZE-10), pygame.SRCALPHA)
-                    col = (255, 255, 255) if color == 'white' else (50, 50, 50)
+                    key                 = f"{piece_type}-{color[0]}"
+                    surf                = pygame.Surface((SQUARE_SIZE-10, SQUARE_SIZE-10), pygame.SRCALPHA)
+                    col                 = (255, 255, 255) if color == 'white' else (50, 50, 50)
                     pygame.draw.circle(surf, col, (SQUARE_SIZE//2-5, SQUARE_SIZE//2-5), SQUARE_SIZE//2-15)
-                    
-                    letter = piece_type[0].upper() if piece_type != 'knight' else 'N'
-                    text = coord_font.render(letter, True, (0, 0, 0) if color == 'white' else (255, 255, 255))
-                    text_rect = text.get_rect(center=(SQUARE_SIZE//2-5, SQUARE_SIZE//2-5))
+                    letter              = piece_type[0].upper() if piece_type != 'knight' else 'N'
+                    text                = coord_font.render(letter, True, (0, 0, 0) if color == 'white' else (255, 255, 255))
+                    text_rect           = text.get_rect(center=(SQUARE_SIZE//2-5, SQUARE_SIZE//2-5))
                     surf.blit(text, text_rect)
-                    
-                    self.pieces[key] = surf
+                    self.pieces[key]    = surf
 
     def initialize_board(self):
-        board = [[None for _ in range(8)] for _ in range(8)]
-        # Pawns
+        board                   = [[None for _ in range(8)] for _ in range(8)]
         for col in range(8):
-            board[1][col] = {'type': 'pawn', 'color': 'black', 'moved': False}
-            board[6][col] = {'type': 'pawn', 'color': 'white', 'moved': False}
-        
-        # Other pieces
-        pieces = ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook']
+            board[1][col]       = {'type': 'pawn', 'color': 'black', 'moved': False}
+            board[6][col]       = {'type': 'pawn', 'color': 'white', 'moved': False}
+        pieces                  = ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook']
         for col, piece in enumerate(pieces):
-            board[0][col] = {'type': piece, 'color': 'black', 'moved': False}
-            board[7][col] = {'type': piece, 'color': 'white', 'moved': False}
+            board[0][col]       = {'type': piece, 'color': 'black', 'moved': False}
+            board[7][col]       = {'type': piece, 'color': 'white', 'moved': False}
         return board
 
     def pos_to_notation(self, row, col):
-        letters = 'abcdefgh'
+        letters     = 'abcdefgh'
         return f"{letters[col]}{8 - row}"
 
     def is_in_check(self, color):
@@ -333,26 +273,20 @@ class ChessGame:
     def is_valid_move(self, start, end, check_check=True):
         start_row, start_col = start
         end_row, end_col = end
-        
         if not (0 <= start_row < 8 and 0 <= start_col < 8 and 0 <= end_row < 8 and 0 <= end_col < 8):
             return False
-
         piece = self.board[start_row][start_col]
         if not piece or piece['color'] != self.current_turn:
             return False
-
         target = self.board[end_row][end_col]
         if target and target['color'] == piece['color']:
             return False
-
         row_diff = end_row - start_row
         col_diff = end_col - start_col
         abs_row = abs(row_diff)
         abs_col = abs(col_diff)
-
         if piece['type'] == 'pawn':
             direction = -1 if piece['color'] == 'white' else 1
-            
             if start_col == end_col and target is None:
                 if end_row == start_row + direction:
                     pass
@@ -363,7 +297,6 @@ class ChessGame:
                     pass
                 else:
                     return False
-                
             elif abs_col == 1 and end_row == start_row + direction:
                 if target:
                     pass
@@ -373,12 +306,10 @@ class ChessGame:
                     return False
             else:
                 return False
-
         elif piece['type'] == 'rook':
             if abs_row == 0 or abs_col == 0:
                 step_row = 0 if abs_row == 0 else (1 if row_diff > 0 else -1)
                 step_col = 0 if abs_col == 0 else (1 if col_diff > 0 else -1)
-                
                 current_row, current_col = start_row + step_row, start_col + step_col
                 while current_row != end_row or current_col != end_col:
                     if self.board[current_row][current_col] is not None:
@@ -387,11 +318,9 @@ class ChessGame:
                     current_col += step_col
             else:
                 return False
-
         elif piece['type'] == 'knight':
             if not ((abs_row == 2 and abs_col == 1) or (abs_row == 1 and abs_col == 2)):
                 return False
-
         elif piece['type'] == 'bishop':
             if abs_row == abs_col:
                 step_row = 1 if row_diff > 0 else -1
@@ -580,16 +509,13 @@ class ChessGame:
             if SOUND_ENABLED:
                 notify_sound.play()
             return True
-
-        # Play appropriate sound effect
         if SOUND_ENABLED:
-            if piece['type'] == 'king' and abs(start_col - end_col) == 2:  # Castling
+            if piece['type'] == 'king' and abs(start_col - end_col) == 2: 
                 castle_sound.play()
-            elif target:  # Capture
+            elif target:  
                 capture_sound.play()
-            else:  # Regular move
+            else:  
                 move_sound.play()
-
         if piece['type'] == 'pawn' and (end_row, end_col) == self.en_passant_target:
             captured_row = start_row
             captured_col = end_col
@@ -873,36 +799,27 @@ def draw_game_status(game):
     screen.blit(status_surface, (10, status_y))
 
 def main():
-    clock = pygame.time.Clock()
-    game = ChessGame(player_color='white')  # Change to 'black' if you want to play as black
-    
+    clock   = pygame.time.Clock()
+    game    = ChessGame(player_color='white') 
     while True:
-        # Let AI make a move if it's their turn
         if game.current_turn != game.player_color and not game.promoting_pawn:
             game.make_ai_move()
-        
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
-
             elif event.type == MOUSEWHEEL:
                 if hasattr(game, 'log_scroll'):
-                    # Adjust scroll position based on wheel movement
-                    game.log_scroll -= event.y * 30  # Scroll speed
-                    # Clamp the scroll position
+                    game.log_scroll -= event.y * 30 
                     log_content_height = max(HEIGHT, (len(game.move_log) // 2 + 2) * 30)
                     game.log_scroll = max(0, min(game.log_scroll, log_content_height - (HEIGHT - 30)))
             
             elif event.type == MOUSEBUTTONDOWN:
-                if event.button == 1:  # Left click
+                if event.button == 1:  
                     col = event.pos[0] // SQUARE_SIZE
                     row = event.pos[1] // SQUARE_SIZE
-                    
-                    # Only allow player to move when it's their turn
                     if game.current_turn != game.player_color:
                         continue
-                    
                     if game.promoting_pawn:
                         promo_row, promo_col = game.promoting_pawn
                         if (col == promo_col and 
