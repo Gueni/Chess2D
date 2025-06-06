@@ -30,9 +30,18 @@ import tkinter as tk
 from tkinter import filedialog
 #? -------------------------------------------------------------------------------
 pygame.init()                                                      
-script_dir      = os.path.dirname(os.path.abspath(__file__))  
-image_path      = os.path.join(script_dir, 'chess.png')  
-icon            = pygame.image.load(image_path)  
+# Load the window icon
+try:
+    icon = pygame.image.load('D:/WORKSPACE/Chess2D/chess.ico')
+    pygame.display.set_icon(icon)
+except:
+    try:
+        icon = pygame.Surface((32, 32))
+        icon.fill((50, 50, 50))
+        pygame.draw.rect(icon, (200, 150, 50), (4, 4, 24, 24))
+        pygame.display.set_icon(icon)
+    except Exception as e:
+        print(f"Could not set window icon: {e}")
 pygame.display.set_icon(icon)
 WIDTH, HEIGHT   = 1050, 700
 BOARD_SIZE      = 700
