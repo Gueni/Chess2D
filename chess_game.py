@@ -862,20 +862,6 @@ def draw_move_log(game):
         # Draw scrollbar thumb
         pygame.draw.rect(screen, (120, 120, 120), (scrollbar_x, log_y + thumb_position, scrollbar_width, thumb_height))
 
-def draw_game_status(game):
-    status_y = HEIGHT - 40
-    turn_text = f"Current Turn: {game.current_turn.capitalize()}"
-    if game.check:
-        turn_text += " (CHECK!)"
-    if game.game_over:
-        if game.winner:
-            turn_text = f"Game Over! {game.winner.capitalize()} wins by checkmate!"
-        else:
-            turn_text = "Game Over! Stalemate!"
-    
-    status_surface = large_font.render(turn_text, True, WHITE)
-    screen.blit(status_surface, (10, status_y))
-
 def main():
     clock = pygame.time.Clock()
     game = ChessGame(player_color='white')
@@ -962,7 +948,6 @@ def main():
         draw_board(game)
         draw_promotion_menu(game)
         draw_move_log(game)
-        draw_game_status(game)
         
         # Draw buttons
         export_button.draw(screen)
