@@ -1,0 +1,21 @@
+Chess Game Move Log
+==================
+
+1. g2g4	d7d5
+2. Bf1g2	Bc8xg4
+3. f2f3	Bg4h5
+4. e2e4	d5xe4
+5. f3xe4	Bh5xd1
+6. Ke1xd1	Kb8c6
+7. d2d4	Qd8xd4+
+8. Bc1d2	Qd4xb2
+9. Kb1c3	Qb2xa1+
+10. Kd1e2	O-O-O
+11. Kg1f3	Qa1b2
+12. Kf3d4	Kc6xd4+
+13. Ke2d3	Qb2xc2+
+14. Kd3e3	Kd4f5+
+15. Ke3e2	Qc2xd2+
+16. Ke2f3	Rd8d3+
+17. Kf3g4	Kg8h6+
+18. Kg4h5	g7g6+
