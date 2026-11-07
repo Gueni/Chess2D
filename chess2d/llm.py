@@ -59,9 +59,9 @@ def parse_reply(board: chess.Board, text: str):
     candidates += re.findall(r"\b[a-h][1-8][a-h][1-8][qrbn]?\b", text or "")
     for token in candidates:
         token = token.strip().rstrip(".,")
-        for parser in (board.parse_uci, board.parse_san):
+        for parse, text_in in ((board.parse_uci, token.lower()), (board.parse_san, token)):
             try:
-                move = parser(token if parser is board.parse_san else token.lower())
+                move = parse(text_in)
             except ValueError:
                 continue
             if move in board.legal_moves:

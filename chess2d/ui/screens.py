@@ -34,15 +34,23 @@ class Screen:
         pass
 
 
+_bg_cache = {}
+
+
 def draw_background(surf):
-    surf.fill(T.BG)
-    w, h = surf.get_size()
-    glow = pygame.Surface((w, max(1, h // 2)), pygame.SRCALPHA)
-    for i in range(12):
-        alpha = int(18 * (1 - i / 12))
-        pygame.draw.ellipse(glow, (*T.ACCENT, alpha),
-                            (w * (0.1 + i * 0.02), -h * 0.35 + i * 6, w * (0.8 - i * 0.04), h * 0.7))
-    surf.blit(glow, (0, 0))
+    """Dark backdrop with a soft vertical gradient (cached per window size)."""
+    size = surf.get_size()
+    if size not in _bg_cache:
+        _bg_cache.clear()
+        bg = pygame.Surface(size)
+        top, bottom = (30, 34, 44), T.BG
+        h = max(1, size[1])
+        for y in range(0, h, 2):
+            t = min(1.0, y / (h * 0.6))
+            c = tuple(int(top[i] + (bottom[i] - top[i]) * t) for i in range(3))
+            pygame.draw.rect(bg, c, (0, y, size[0], 2))
+        _bg_cache[size] = bg
+    surf.blit(_bg_cache[size], (0, 0))
 
 
 def card_rect(surf, width=620, top=None, bottom_pad=40):

@@ -11,7 +11,7 @@ class Scale:
 
     @classmethod
     def update(cls, w: int, h: int):
-        cls.s = max(0.7, min(2.2, min(w / 1280, h / 800)))
+        cls.s = max(0.7, min(2.2, min(min(w, h) / 820, max(w, h) / 1100)))
 
 
 def px(n: float) -> int:
